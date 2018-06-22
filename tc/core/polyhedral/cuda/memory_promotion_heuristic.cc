@@ -440,8 +440,10 @@ void promoteToSharedBelow(
     size_t& remainingMemory) {
   auto root = scop.scheduleRoot();
   auto partialSched = partialSchedule(root, bandNode);
+  auto mapping = collectMappingsTo<mapping::BlockId>(scop);
 
-  auto groupMap = TensorReferenceGroup::accessedWithin(partialSched, scop.body);
+  auto groupMap = TensorReferenceGroup::accessedWithin(
+      partialSched.intersect_domain(mapping), scop.body);
   // Pure affine schedule without (mapping) filters.
   auto partialSchedMupa = partialScheduleMupa(root, bandNode);
 
