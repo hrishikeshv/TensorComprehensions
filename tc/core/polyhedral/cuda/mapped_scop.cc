@@ -1040,10 +1040,7 @@ std::unique_ptr<MappedScop> MappedScop::makeWithOuterBlockInnerThreadStrategy(
       sharedMemorySize -= reductionMemoryRequirement;
     }
 
-    auto band = outerBand->as<ScheduleTreeBand>();
-    LOG_IF(WARNING, FLAGS_debug_tc_mapper && band->nMember() == 0)
-        << "Aborting memory promotion because outer band has 0 members (NYI)";
-    if (band->nMember() > 0 && sharedMemorySize > 0) {
+    if (sharedMemorySize > 0) {
       LOG_IF(
           WARNING,
           cudaOptions.proto().unroll_copy_shared() &&
