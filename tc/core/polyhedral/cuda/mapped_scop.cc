@@ -1023,7 +1023,6 @@ std::unique_ptr<MappedScop> MappedScop::makeWithOuterBlockInnerThreadStrategy(
   // 8. Promote to shared memory.
   // If shared promotion depth is specified in the mapping options, use the
   // specified value.  Otherwise, promote below the loops mapped to blocks.
-  // This may split the outer band, so find the new outer band after promotion.
   if (cudaOptions.proto().use_shared_memory()) {
     size_t sharedMemorySize = cudaOptions.proto().has_max_shared_memory()
         ? cudaOptions.proto().max_shared_memory()
@@ -1058,13 +1057,6 @@ std::unique_ptr<MappedScop> MappedScop::makeWithOuterBlockInnerThreadStrategy(
           sharedMemorySize,
           cudaOptions.proto().unroll_copy_shared() &&
               generic.proto.has_unroll());
-
-      auto bands = ScheduleTree::collectDFSPreorder(
-          scop->scheduleRoot(), ScheduleTreeType::Band);
-      if (bands.size() == 0) { // Sanity check.
-        throw NoBandsException("no bands after promotion");
-      }
-      outerBand = bands[0];
     }
   }
 
