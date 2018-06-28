@@ -1020,7 +1020,9 @@ std::unique_ptr<MappedScop> MappedScop::makeWithOuterBlockInnerThreadStrategy(
   LOG_IF(INFO, FLAGS_debug_tc_mapper) << "After mapping to blocks:" << std::endl
                                       << *mappedScop->schedule();
 
-  // 8. Promote to shared memory below the loops mapped to blocks.
+  // 8. Promote to shared memory.
+  // If shared promotion depth is specified in the mapping options, use the
+  // specified value.  Otherwise, promote below the loops mapped to blocks.
   // This may split the outer band, so find the new outer band after promotion.
   if (cudaOptions.proto().use_shared_memory()) {
     size_t sharedMemorySize = cudaOptions.proto().has_max_shared_memory()
@@ -1047,9 +1049,12 @@ std::unique_ptr<MappedScop> MappedScop::makeWithOuterBlockInnerThreadStrategy(
               !generic.proto.has_unroll())
           << "requested to unroll copies to shared memory without providing the unroll size";
 
+      auto depth = cudaOptions.proto().has_shared_depth()
+          ? cudaOptions.proto().shared_depth()
+          : outerBand->scheduleDepth(scop->scheduleRoot());
       promoteToSharedAtDepth(
           *mappedScop,
-          std::min(band->nOuterCoincident(), mappedScop->numBlocks.view.size()),
+          depth,
           sharedMemorySize,
           cudaOptions.proto().unroll_copy_shared() &&
               generic.proto.has_unroll());
